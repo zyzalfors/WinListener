@@ -1,3 +1,3 @@
 # Win Listener
 
-This Windows Win32 GUI program intercepts clipboard and keystroke events and saves silently clipboard texts and keystroke values into two text files inside the program's directory.
+This Windows Win32 GUI program intercepts clipboard and keystroke events, silently saving clipboard text and keystroke values into two separate text files within the program's directory.
